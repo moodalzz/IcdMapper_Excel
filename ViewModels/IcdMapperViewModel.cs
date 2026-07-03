@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using IcdMapper_Excel.Models;
 using IcdMapper_Excel.Services.Interfaces;
@@ -65,7 +66,7 @@ namespace IcdMapper_Excel.ViewModels
 
         public string ExcelFileName => string.IsNullOrEmpty(_excelPath) ? "No File Selected" : System.IO.Path.GetFileName(_excelPath);
 
-        public string ProfileNmae
+        public string ProfileName
         {
             get => _profileName;
             set => SetField(ref _profileName, value);
@@ -90,7 +91,7 @@ namespace IcdMapper_Excel.ViewModels
         // -- collection -----
         public ObservableCollection<ColumnMappingViewModel> ColumnMappings { get; } = new();
 
-        public ObservableCollection<Models.MappingProfile> SaveProfile { get; } = new();
+        public ObservableCollection<Models.MappingProfile> SaveProfiles { get; } = new();
 
         private MappingProfile? _selectedProFile;
 
@@ -207,6 +208,39 @@ namespace IcdMapper_Excel.ViewModels
             {
                 StatusMessage = $"Error converting fields: {ex.Message}";
             }
+        }
+
+        //--Export-----
+        private void ExportJason()
+        {
+            var dlg = new SaveFileDialog { Filter = "JSON Files|*.json", FileName = $"{ProfileNmae}.json" };
+            if (dlg.ShowDialog() != true) return;
+
+            try
+            {
+                var profile = BuildProfile();
+                var fields = _excel.ToIcdFields(ExcelPath, profile, SelectedSheetIndex);
+                _jsonExport.Export(fields, dlg.FileName);
+                StatusMessage = $"Exported JSON to '{dlg.FileName}'";
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Error exporting JSON: {ex.Message}";
+            }
+        }
+
+        //--Profile Save/Delete-----
+
+        private void SaveProfile()
+        {
+            if (string.IsNullOrWhiteSpace(ProfileName))
+            {
+                StatusMessage = "Profile name cannot be empty.";
+                return;
+            }
+            _profile.Save(BuildProfile());
+            RefreshProfiles();
+            StatusMessage = $"Profile '{ProfileName}' saved.";
         }
     }
 }
