@@ -1,5 +1,6 @@
 ﻿using IcdMapper_Excel.Models;
 using IcdMapper_Excel.Services.Interfaces;
+using IcdMapper_Excel.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -37,7 +38,11 @@ namespace IcdMapper_Excel.Services
                         result.Add(profile);
                     }
                 }
-                catch { }
+                catch(Exception ex) 
+                {  
+                
+                    
+                }
             }
             return result.OrderBy(p => p.ProfileName).ToList();
         }

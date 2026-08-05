@@ -6,7 +6,7 @@ using IcdMapper_Excel.Models;
 
 namespace IcdMapper_Excel.Services
 {
-    public class JasonExportService : IJsonExportService
+    public class JsonExportService : IJsonExportService
     {
         private static readonly JsonSerializerOptions _opts = new()
         {

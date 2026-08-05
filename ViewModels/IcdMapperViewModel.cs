@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using IcdMapper_Excel.Models;
@@ -29,8 +30,9 @@ namespace IcdMapper_Excel.ViewModels
         private bool _hasFields;
         private string? _selectedSheetName;
 
-        public ObservableCollection<string> SheetNames { get; } = new();
+        // -- properties -----
 
+        public ObservableCollection<string> SheetNames { get; } = new();
         public string? SelectedSheetName
         {
             get => _selectedSheetName;
@@ -44,7 +46,6 @@ namespace IcdMapper_Excel.ViewModels
         }
 
         public bool HasSheets => SheetNames.Count > 0;
-
         public int SelectedSheetIndex
         {
             get
@@ -83,10 +84,13 @@ namespace IcdMapper_Excel.ViewModels
         }
 
         public int DataStartRow { get => _dataStartRow; set => SetField(ref _dataStartRow, value); }
+        public List<ColumnMapping> Columns { get; set; } = new();
+        public DateTime LastModified { get; set; } = DateTime.Now;
+
 
         public string StatusMessage { get => _statusMessage; set => SetField(ref _statusMessage, value); }
         public string JsonPreview { get => _jsonPreview; set => SetField(ref _jsonPreview, value); }
-        public bool HashFields { get => _hasFields; set => SetField(ref _hasFields, value); }
+        public bool HasFields { get => _hasFields; set => SetField(ref _hasFields, value); }
 
         // -- collection -----
         public ObservableCollection<ColumnMappingViewModel> ColumnMappings { get; } = new();
@@ -131,7 +135,14 @@ namespace IcdMapper_Excel.ViewModels
             var dlg = new OpenFileDialog { Filter = "Excel Files|*.xlsx;*.xls" };
             if (dlg.ShowDialog() != true) return;
 
-            ExcelPath = dlg.FileName;
+            //ExcelPath = dlg.FileName;
+            //LoadSheetName();
+            LoadExcelFile(dlg.FileName);
+        }
+
+        public void LoadExcelFile(string filePath)
+        {
+            ExcelPath = filePath;
             LoadSheetName();
         }
 
@@ -158,7 +169,7 @@ namespace IcdMapper_Excel.ViewModels
             {
                 if (_selectedSheetName == SheetNames[0])
                 {
-                    ReloadHeader();
+                    ReloadHeaders();
                 }
                 else
                 {
@@ -184,7 +195,7 @@ namespace IcdMapper_Excel.ViewModels
                     ColumnMappings.Add(new ColumnMappingViewModel(header));
                 }
                 StatusMessage = $"Loaded {headers.Count} columns from sheet '{SelectedSheetName}'";
-                HashFields = false;
+                HasFields = false;
                 JsonPreview = "";
             }
             catch (Exception ex)
@@ -201,7 +212,7 @@ namespace IcdMapper_Excel.ViewModels
                 var profile = BuildProfile();
                 var fields = _excel.ToIcdFields(ExcelPath, profile, SelectedSheetIndex);
                 JsonPreview = _jsonExport.Preview(fields);
-                HashFields = fields.Count > 0;
+                HasFields = fields.Count > 0;
                 StatusMessage = $"Converted {fields.Count} fields from sheet '{SelectedSheetName}'";
             }
             catch (Exception ex)
@@ -211,9 +222,9 @@ namespace IcdMapper_Excel.ViewModels
         }
 
         //--Export-----
-        private void ExportJason()
+        private void ExportJson()
         {
-            var dlg = new SaveFileDialog { Filter = "JSON Files|*.json", FileName = $"{ProfileNmae}.json" };
+            var dlg = new SaveFileDialog { Filter = "JSON Files|*.json", FileName = $"{ProfileName}.json" };
             if (dlg.ShowDialog() != true) return;
 
             try
@@ -241,6 +252,53 @@ namespace IcdMapper_Excel.ViewModels
             _profile.Save(BuildProfile());
             RefreshProfiles();
             StatusMessage = $"Profile '{ProfileName}' saved.";
+        }
+
+        private MappingProfile BuildProfile() => new()
+        {
+            ProfileName = ProfileName,
+            HeaderRowIndex = HeaderRowIndex,
+            DataStartRow = DataStartRow,
+            Columns = ColumnMappings.Select(vm => vm.ToModel()).ToList()
+        };
+
+        private void RefreshProfiles()
+        {
+            SaveProfiles.Clear();
+            foreach (var profile in _profile.LoadAll())
+            {
+                SaveProfiles.Add(profile);
+            }
+        }
+
+        private void DeleteProfile()
+        {
+            if (SelectedProfile == null) return;
+            if(MessageBox.Show($"Are you sure you want to delete the profile '{SelectedProfile.ProfileName}'?", "Confirm Delete", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
+            {
+                return;
+            }
+
+            _profile.Delete(SelectedProfile.ProfileName);
+            RefreshProfiles();
+            StatusMessage = $"Profile '{SelectedProfile.ProfileName}' deleted.";
+        } 
+
+        private void ApplyProfile(MappingProfile profile)
+        {
+            ProfileName = profile.ProfileName;
+            HeaderRowIndex = profile.HeaderRowIndex;
+            DataStartRow = profile.DataStartRow;
+
+            if (!ColumnMappings.Any()) return;
+
+
+            foreach (var mapping in ColumnMappings)
+            {
+                var saved = profile.Columns.FirstOrDefault(c => c.ExcelHeader == mapping.ExcelHeader);
+                mapping.SelectedIcdProperty = saved?.IcdProperty;
+            }
+            StatusMessage = $"Profile '{profile.ProfileName}' applied.";
         }
     }
 }

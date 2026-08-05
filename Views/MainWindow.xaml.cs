@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using IcdMapper_Excel.ViewModels;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -16,9 +17,20 @@ namespace IcdMapper_Excel
     /// </summary>
     public partial class MainWindow : Window
     {
-        public MainWindow()
+        public MainWindow(IcdMapperViewModel viewModel)
         {
             InitializeComponent();
+            DataContext = viewModel;
+        }
+
+        private void MinimizeButton_Click(object sender, RoutedEventArgs e)
+        {
+            WindowState = WindowState.Minimized;
+        }
+
+        private void CloseButton_Click(object sender, RoutedEventArgs e)
+        {
+            Close();
         }
     }
 }

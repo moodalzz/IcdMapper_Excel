@@ -41,7 +41,13 @@
         </Style>
     </UserControl.Resources>
     <Grid
-        Margin="12">
+ x:Name="RootGrid"
+    Margin="12"
+    AllowDrop="True"
+    DragEnter="RootGrid_DragEnter"
+    DragOver="RootGrid_DragOver"
+    DragLeave="RootGrid_DragLeave"
+    Drop="RootGrid_Drop">
         <Grid.RowDefinitions>
             <RowDefinition
                 Height="Auto" />
@@ -87,7 +93,8 @@
                 <TextBox
                     IsReadOnly="True"
                     Text="{Binding ExcelPath, Mode=OneWay}"
-                    Background="#F5F5F5" />
+                    Background="#F5F5F5"
+                    />
             </DockPanel>
         </GroupBox>
 
@@ -248,6 +255,21 @@
             <TextBlock
                 Text="{Binding StatusMessage}"
                 Foreground="#444" />
+        </Border>
+
+        <Border
+        x:Name="DropOverlay"
+        Grid.RowSpan="6"
+        Background="#CC0078D7"
+        Visibility="Collapsed"
+        IsHitTestVisible="False">
+            <TextBlock
+            Text="여기에 엑셀 파일을 놓으세요"
+            FontSize="18"
+            FontWeight="Bold"
+            Foreground="White"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center" />
         </Border>
     </Grid>
 </UserControl>
