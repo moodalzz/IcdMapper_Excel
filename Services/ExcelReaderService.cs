@@ -26,7 +26,7 @@ namespace IcdMapper_Excel.Services
             int colCount = sheet.Dimension?.Columns ?? 0;
             int excelRow = headerRowIndex + 1;
             var headers = new List<string>();
-            for (int i = 0; i <= colCount; i++)
+            for (int i = 1; i <= colCount; i++)
             {
                 var val = sheet.Cells[excelRow, i].Text.Trim();
                 headers.Add(string.IsNullOrEmpty(val) ? $"Column {i}" : val);
