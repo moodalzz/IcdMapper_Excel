@@ -1,4 +1,5 @@
-엑셀 ICD 문서를 파싱해서 JSON 필드 매핑 프로파일로 변환
+엑셀 기반 ICD 문서를 파싱하여 JSON 필드 매핑 프로파일로 변환하는 WPF 데스크톱 도구
+
 <img width="1100" height="720" alt="{F83C939A-9850-4093-BC66-EBE67A3D24BE}" src="https://github.com/user-attachments/assets/2cd3120b-5d13-41cd-a24d-c2a09855abc1" />
 
 기본 동작 확인 - 202607
